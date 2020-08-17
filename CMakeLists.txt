@@ -4,3 +4,4 @@ project(MySharedPtr)
 set(CMAKE_CXX_STANDARD 14)
 
 add_executable(MySharedPtr main.cpp)
+
