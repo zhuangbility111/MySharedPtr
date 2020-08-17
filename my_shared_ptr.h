@@ -6,6 +6,7 @@
 #define STL_MY_ALLOCATOR_MY_SHARED_PTR_H
 
 
+#include <type_traits>
 
 // 底层引用计数类（不可拷贝、不可赋值，因为每块内存空间只能拥有一个引用计数，不存在多个引用计数类维护一个内存空间）
 // 也就是它是独一无二的，永远保证一对一
@@ -162,8 +163,69 @@ private:
 };
 
 template <class T>
-class weak_ptr {
+class __weak_count {
+public:
+    // 构造函数
+    __weak_count() : count_ptr(0) { }
 
+    template <class T1>
+    __weak_count(const __shared_count<T1>& r) : count_ptr(r.count_ptr) {
+
+    }
+
+    __weak_count(const __weak_count& r) : count_ptr(r.count_ptr) {
+
+    }
+
+    template <class T1>
+    __weak_count(const __weak_count<T1> r) : count_ptr(r.count_ptr) {
+
+    }
+
+    // 拷贝赋值运算符
+    __weak_count& operator=(const __weak_count& r) {
+
+    }
+
+    template <class T1>
+    __weak_count& operator=(const __weak_count<T1>& r) {
+
+    }
+
+    // 析构函数
+    ~__weak_count() {
+
+    }
+
+private:
+    __Sp_counted_base* count_ptr;
+};
+
+template <class T>
+class shared_ptr;
+
+template <class T>
+class weak_ptr {
+public:
+    typedef T element_type;
+
+    // 构造函数
+    constexpr weak_ptr() noexcept : ptr(0), ref_count() { }
+
+    // 拷贝构造函数
+    weak_ptr(const weak_ptr& r) noexcept : ptr(r.ptr), ref_count(r.ref_count) { }
+
+    template <class T1>
+    weak_ptr(const weak_ptr<T1>& r) noexcept : ptr(r.ptr), ref_count(r.ref_count) { }
+
+    template <class T1>
+    weak_ptr(const shared_ptr<T1> r) noexcept : ptr(r.ptr), ref_count(ref_count) { }
+
+
+
+private:
+    element_type* ptr;
+    __weak_count<T>  ref_count;
 };
 
 
@@ -218,6 +280,10 @@ public:
     }
 
 private:
+    // 两个友元类
+    template <class T1> friend class shared_ptr;
+    template <class T1> friend class weak_ptr;
+
     element_type* ptr;
     __shared_count<T> ref_count;
 };
